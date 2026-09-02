@@ -645,7 +645,11 @@ elif selected_page == "🤖 AI Technical Interview Panel (5 Qs)":
         }
     ]
     
-    q_titles = [f"Q{q['num']}: {q['title'].replace(f'Question {q[\"num\"]}: ', '')}" for q in INTERVIEW_QS]
+    q_titles = []
+    for q in INTERVIEW_QS:
+        num = q['num']
+        clean_title = q['title'].replace(f"Question {num}: ", "")
+        q_titles.append(f"Q{num}: {clean_title}")
     selected_iq_idx = st.selectbox("Select Interview Question to Practice:", range(len(q_titles)), format_func=lambda i: q_titles[i])
     current_iq = INTERVIEW_QS[selected_iq_idx]
     
