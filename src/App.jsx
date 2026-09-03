@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import AuthLanding from './components/AuthLanding';
+import StageExperienceHub from './components/StageExperienceHub';
 import ExamEngine from './components/ExamEngine';
 import CompanyTracks from './components/CompanyTracks';
 import AIInterviewSimulator from './components/AIInterviewSimulator';
@@ -11,7 +12,7 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('exams');
+  const [activeTab, setActiveTab] = useState('stage'); // default to tailored stage hub
   const [userStage, setUserStage] = useState('sem7'); // 'sem5', 'sem7', 'graduate'
   const [activeExamId, setActiveExamId] = useState('layer-3');
   const [examHistory, setExamHistory] = useState([]);
@@ -35,7 +36,7 @@ export default function App() {
     setCurrentUser(user);
     if (user.stage) setUserStage(user.stage);
     if (user.examHistory) setExamHistory(user.examHistory);
-    setActiveTab('exams');
+    setActiveTab('stage');
   };
 
   const handleLogout = () => {
@@ -68,7 +69,7 @@ export default function App() {
     }
   };
 
-  const handleLaunchCompanyExam = (examId) => {
+  const handleLaunchExam = (examId) => {
     setActiveExamId(examId);
     setActiveTab('exams');
   };
@@ -84,7 +85,7 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-purple-600 selection:text-white">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-orange-500 selection:text-white">
       <div>
         <Navbar
           activeTab={activeTab}
@@ -98,6 +99,15 @@ export default function App() {
         />
 
         <main className="transition-all duration-300">
+          {activeTab === 'stage' && (
+            <StageExperienceHub
+              userStage={userStage}
+              setUserStage={setUserStage}
+              onLaunchExam={handleLaunchExam}
+              onNavigateTab={setActiveTab}
+            />
+          )}
+
           {activeTab === 'exams' && (
             <ExamEngine
               activeExamId={activeExamId}
@@ -108,7 +118,7 @@ export default function App() {
 
           {activeTab === 'companies' && (
             <CompanyTracks
-              onLaunchCompanyExam={handleLaunchCompanyExam}
+              onLaunchCompanyExam={handleLaunchExam}
             />
           )}
 
@@ -147,14 +157,15 @@ export default function App() {
           <div>
             <span className="font-bold text-slate-300">The 2026 AI Career Roadmap</span> — For Indian Engineering Students
             <div className="text-[11px] text-slate-500 mt-0.5">
-              Logged in as <span className="text-purple-400 font-bold">{currentUser.name}</span> ({currentUser.email})
+              Logged in as <span className="text-orange-400 font-bold">{currentUser.name}</span> ({currentUser.email}) • Active Track: <span className="text-slate-300 font-bold">{userStage.toUpperCase()}</span>
             </div>
           </div>
           <div className="flex items-center gap-6">
-            <button onClick={() => setActiveTab('roadmap')} className="hover:text-purple-400 transition-colors">Curriculum</button>
-            <button onClick={() => setActiveTab('projects')} className="hover:text-purple-400 transition-colors">5 Projects</button>
-            <button onClick={() => setActiveTab('companies')} className="hover:text-purple-400 transition-colors">14 Companies</button>
-            <button onClick={() => setActiveTab('analytics')} className="hover:text-purple-400 transition-colors">CTC Matrix</button>
+            <button onClick={() => setActiveTab('stage')} className="hover:text-orange-400 transition-colors">Stage Hub</button>
+            <button onClick={() => setActiveTab('roadmap')} className="hover:text-orange-400 transition-colors">Curriculum</button>
+            <button onClick={() => setActiveTab('projects')} className="hover:text-orange-400 transition-colors">5 Projects</button>
+            <button onClick={() => setActiveTab('companies')} className="hover:text-orange-400 transition-colors">14 Companies</button>
+            <button onClick={() => setActiveTab('analytics')} className="hover:text-orange-400 transition-colors">CTC Matrix</button>
             <button onClick={handleLogout} className="text-red-400 hover:text-red-300 transition-colors font-medium">Sign Out</button>
           </div>
         </div>

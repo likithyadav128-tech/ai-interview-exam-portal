@@ -10,7 +10,7 @@ import {
   BarChart3, 
   Sparkles,
   LogOut,
-  UserCheck
+  Target
 } from 'lucide-react';
 
 export default function Navbar({ 
@@ -24,6 +24,7 @@ export default function Navbar({
   onLogout
 }) {
   const navItems = [
+    { id: 'stage', label: 'Stage Hub', icon: Target, badge: 'Your Level' },
     { id: 'exams', label: 'Layer Exams', icon: FileText, badge: '4 Layers' },
     { id: 'companies', label: 'Company Tracks', icon: Building2, badge: '14 MNCs' },
     { id: 'interview', label: 'AI Interview Panel', icon: Bot, badge: '5 Core Qs' },
@@ -51,7 +52,7 @@ export default function Navbar({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('exams')}>
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('stage')}>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 via-indigo-600 to-orange-500 flex items-center justify-center text-white shadow-lg shadow-purple-500/20 ring-1 ring-white/20">
               <GraduationCap className="w-6 h-6" />
             </div>
@@ -70,26 +71,32 @@ export default function Navbar({
             </div>
           </div>
 
-          {/* Target Stage Switcher */}
-          <div className="hidden lg:flex items-center bg-slate-900 border border-slate-800 rounded-xl p-1 text-xs">
-            <span className="text-slate-400 px-2 font-medium">Stage:</span>
+          {/* Target Stage Switcher Bar (Matching User's Uploaded Image Design) */}
+          <div className="hidden lg:flex items-center bg-slate-900 border border-slate-800 rounded-2xl p-1 text-xs shadow-inner">
+            <span className="text-slate-400 px-2.5 font-bold">Stage:</span>
             {[
               { id: 'sem5', label: 'Sem ≤ 5 (Foundations)' },
               { id: 'sem7', label: 'Sem 7 (Final-Year)' },
               { id: 'graduate', label: 'Graduate (Fast-Track)' },
-            ].map((stage) => (
-              <button
-                key={stage.id}
-                onClick={() => setUserStage(stage.id)}
-                className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
-                  userStage === stage.id
-                    ? 'bg-orange-500 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                }`}
-              >
-                {stage.label}
-              </button>
-            ))}
+            ].map((stage) => {
+              const isSelected = userStage === stage.id;
+              return (
+                <button
+                  key={stage.id}
+                  onClick={() => {
+                    setUserStage(stage.id);
+                    setActiveTab('stage');
+                  }}
+                  className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
+                    isSelected
+                      ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30 ring-1 ring-orange-400'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                  }`}
+                >
+                  {stage.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* User Profile & Logout */}
@@ -149,15 +156,15 @@ export default function Navbar({
                 onClick={() => setActiveTab(item.id)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
                   isActive
-                    ? 'bg-purple-600/20 text-purple-300 border border-purple-500/40 shadow-sm'
+                    ? 'bg-orange-500/15 text-orange-400 border border-orange-500/40 shadow-sm'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-purple-400' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-orange-400' : 'text-slate-400'}`} />
                 <span>{item.label}</span>
                 {item.badge && (
                   <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${
-                    isActive ? 'bg-purple-500/30 text-purple-200' : 'bg-slate-800 text-slate-400'
+                    isActive ? 'bg-orange-500/30 text-orange-200' : 'bg-slate-800 text-slate-400'
                   }`}>
                     {item.badge}
                   </span>

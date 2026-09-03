@@ -112,7 +112,7 @@ export const COMPANIES_2026 = [
     whatTheyWant: "CoE selection + one strong AI project for the higher track.",
     interviewTips: "CoE selection is interview-heavy and AI-aware. Prepare for technical questions in data engineering, AI/ML, and error recovery.",
     category: "IT Services AI-Tier",
-    examId: "wipro-coe"
+    examId: "layer-2"
   },
   {
     id: "accenture",
@@ -124,7 +124,7 @@ export const COMPANIES_2026 = [
     whatTheyWant: "Standard AMCAT-style process + show high curiosity and practical experience with GenAI.",
     interviewTips: "All freshers go through GenAI Studio training in their first 6 months; showing existing AI fluency and prompt engineering in the interview puts you ahead.",
     category: "Consulting / IT Services",
-    examId: "accenture-genai"
+    examId: "layer-3"
   },
   {
     id: "deshaw",
@@ -160,7 +160,7 @@ export const COMPANIES_2026 = [
     whatTheyWant: "Standard process + AI project visibility with live deployment.",
     interviewTips: "Be ready to discuss your AI project's deployment story: uptime, latency, token costs, and error handling.",
     category: "IT Services AI-Tier",
-    examId: "cognizant-genai"
+    examId: "layer-4"
   },
   {
     id: "techmahindra",
@@ -172,7 +172,7 @@ export const COMPANIES_2026 = [
     whatTheyWant: "Standard process + genuine interest in India-context AI & LLM safety.",
     interviewTips: "Mention Project Indus and understanding of multi-lingual tokenization or local LLM governance.",
     category: "IT Services AI-Tier",
-    examId: "techmahindra-indus"
+    examId: "layer-3"
   },
   {
     id: "hexaware",
@@ -184,7 +184,7 @@ export const COMPANIES_2026 = [
     whatTheyWant: "Standard process; ambitious midsize candidates with multi-agent orchestration skills fit well.",
     interviewTips: "Demonstrate knowledge of agentic loops (LangGraph, tool calling, error state recovery).",
     category: "IT Services AI-Tier",
-    examId: "hexaware-agent"
+    examId: "layer-3"
   }
 ];
 
@@ -384,35 +384,123 @@ export const FREE_RESOURCES = [
   }
 ];
 
+// ================= STAGE SPECIFIC WORKFLOWS & FEATURES (PART 7 OF PDF) =================
+export const STAGE_CONFIGS = {
+  sem5: {
+    id: "sem5",
+    label: "Sem ≤ 5 (Foundations)",
+    title: "Semester ≤ 5: Foundation & Runway Track",
+    runway: "12 to 18 Months",
+    weeklyHours: "10 Hours / Week (4h weekend + 6h weekdays)",
+    primaryGoal: "Master Layer 1 & 2 without rushing; build GitHub daily commit habit & Kaggle notebooks.",
+    targetCTC: "₹7.0 - 22.0 LPA (Prime & Elite Runway)",
+    tagline: "You have the most runway, and most students waste it. Build rock-solid foundations before touching LLMs.",
+    priorityExams: [
+      { id: "layer-1", name: "Layer 1: Python & Git (20 Qs)", badge: "Critical" },
+      { id: "layer-2", name: "Layer 2: ML Math & Algorithms (20 Qs)", badge: "Core" },
+      { id: "deshaw-gai", name: "D. E. Shaw Summer Intern Math Screen", badge: "Aspirational" }
+    ],
+    targetCompanies: ["D. E. Shaw Summer 2026 Internship (₹2L/month)", "TCS Prime Campus Drives", "HCLTech TechBee / Elite Program", "Early Hackathons"],
+    mustDoList: [
+      "Set up GitHub profile and push your first clean Python repository (daily commit habit).",
+      "Complete University of Helsinki MOOC.fi Python (7 weeks free, auto-graded exercises).",
+      "Read Pro Git Book Chapters 1 to 3 (branching, commits, merge conflicts).",
+      "Watch 3Blue1Brown Essence of Linear Algebra (4h visual intuition) + Khan Academy Probability.",
+      "Complete Andrew Ng Machine Learning Specialization (2022 Coursera, audit free).",
+      "Build a model on Kaggle Titanic placing in top 50% of public submissions with clean notebook."
+    ],
+    mustSkipList: [
+      "DO NOT jump to LLM tutorials or LangChain before Python & Git comfort.",
+      "DO NOT spend ₹40,000 on paid bootcamps (the free curriculum is identical).",
+      "DO NOT setup Kubernetes or complex multi-region enterprise DevOps yet."
+    ],
+    failureTrap: "Spending Months 1-2 watching YouTube tutorials without writing your own code. Tutorial code on GitHub does not count; build personal scripts.",
+    targetOutput: "A GitHub profile with 3 clean Python tools (scraper, CLI tool, CSV analyzer) + 2 Kaggle notebooks with clear markdown explanations.",
+    recommendedProjects: ["proj-1", "proj-2"],
+    color: "purple"
+  },
+
+  sem7: {
+    id: "sem7",
+    label: "Sem 7 (Final-Year)",
+    title: "Semester 7: Placement Crunch & Fast-Track Execution",
+    runway: "0 to 6 Months (Placements Live)",
+    weeklyHours: "10-12 Hours / Week (Parallel Track)",
+    primaryGoal: "Deploy 1 solid AI project this month to unlock ₹6.5-11 LPA IT-Services AI-Tier; rehearse the 5 interview questions out loud daily.",
+    targetCTC: "₹6.5 - 11.5 LPA (TCS Prime / Infosys PP) & ₹18-22 LPA (HCLTech Elite)",
+    tagline: "Less runway, parallel track! A single deployed AI project moves you from TCS Ninja (₹3.5 LPA) to TCS Prime (₹7+ LPA).",
+    priorityExams: [
+      { id: "tcs-prime", name: "TCS Prime AI Track Screening", badge: "Highest ROI" },
+      { id: "hcltech-elite", name: "HCLTech Elite ₹18-22 LPA AI Exam", badge: "Elite Band" },
+      { id: "infosys-pp", name: "Infosys Power Programmer / Specialist", badge: "AI Track" },
+      { id: "layer-3", name: "Layer 3: LLM Fluency & RAG (20 Qs)", badge: "Core Screen" }
+    ],
+    targetCompanies: ["TCS Prime (₹7.0 - 11.5 LPA)", "HCLTech Elite (₹18 - 22 LPA)", "Infosys Power Programmer (₹6.5 - 9.5 LPA)", "Wipro CoE", "Accenture GenAI Studio"],
+    mustDoList: [
+      "Honest State Audit: If Python is comfortable, pick 1 project from Part 4 immediately.",
+      "Block 4 weekends for Project 1 (Document Q&A Bot) or Project 2 (Resume Matcher).",
+      "Deploy your AI project to a public URL (Render / Vercel) with 20 hand-written test cases.",
+      "Rehearse the 5 Universal 2026 Interview Questions out loud (record yourself and iterate).",
+      "Use Business Outcome Translator: Translate LangChain/LoRA into latency, users, and cost metrics for Java-background panels.",
+      "Apply Rule 4.6 on your resume: Ensure every project line ends with a verified number."
+    ],
+    mustSkipList: [
+      "DO NOT spend 3 months starting Python from zero; jump directly into project build if foundations are 60%+.",
+      "DO NOT put homework-grade generic sentiment analysis models on your resume (recruiters skip in 4s).",
+      "DO NOT give generic answers to 'Why our company?' (mention TCS Prime, GenAI Foundry, etc.)."
+    ],
+    failureTrap: "Trying to build something too ambitious. The right size is 1.5x harder than feels comfortable. If 4 weeks in and not deployed, cut scope and ship.",
+    targetOutput: "1 substantial project deployed live with a 90-second video walkthrough, clean README, 10+ real student users, and polished resume lines.",
+    recommendedProjects: ["proj-1", "proj-2", "proj-5"],
+    color: "orange"
+  },
+
+  graduate: {
+    id: "graduate",
+    label: "Graduate (Fast-Track)",
+    title: "Graduated: 6-Month Accelerated Sprint & User Traction",
+    runway: "Full-Time 6-12 Month Window",
+    weeklyHours: "16 Hours / Week (Full-Time Sprint)",
+    primaryGoal: "Compress 9-month roadmap to 6 months; recruit beta users from Day 1; apply in parallel to 30-50 roles starting Month 4.",
+    targetCTC: "₹8.0 - 18.0 LPA (Funded AI Startups & GCCs) & ₹18-22 LPA (HCLTech Elite)",
+    tagline: "Full days, no semester exam distractions. Recruit beta users immediately to create massive resume credibility.",
+    priorityExams: [
+      { id: "layer-3", name: "Layer 3: LLM Fluency & GenAI (20 Qs)", badge: "Core" },
+      { id: "layer-4", name: "Layer 4: System Integration & Production (20 Qs)", badge: "Production" },
+      { id: "hcltech-elite", name: "HCLTech Elite ₹18-22 LPA Screen", badge: "Elite Track" },
+      { id: "deshaw-gai", name: "DE Shaw India GAI Strike Team", badge: "Quant / Top Tier" }
+    ],
+    targetCompanies: ["Funded AI Startups (Series A/B ₹8-18 LPA)", "Product Companies (Razorpay, Zoho, Postman ₹8-15 LPA)", "GCC Analytics Hubs", "Tier-1 IT AI-Tiers"],
+    mustDoList: [
+      "Set a strict 6-month calendar working 16 hours/week. Block specific weeks for each layer.",
+      "Recruit beta users from Month 1 (college juniors, family, peers) for live testing.",
+      "Start parallel applications from Month 4 (30 to 50 calibrated roles tracked in a spreadsheet).",
+      "Master multi-agent LangGraph workflows, failure state handling, and Docker deployment.",
+      "Fine-tune a small open-weight model (1B-7B) on a niche dataset and publish on Hugging Face Hub."
+    ],
+    mustSkipList: [
+      "DO NOT wait until Month 9 to begin applying; start sending applications from Month 4 as soon as Project 1 is live.",
+      "DO NOT build in isolation without external users (external user proof is your #1 credibility lift).",
+      "DO NOT apply without customized company-specific research."
+    ],
+    failureTrap: "Drifting without fixed weekly deadlines or waiting for a 'perfect' portfolio before sending job applications.",
+    targetOutput: "A live portfolio site, 2 deployed AI applications with 50+ real users, 30+ submitted applications, and advanced interview pipeline.",
+    recommendedProjects: ["proj-3", "proj-4", "proj-2"],
+    color: "emerald"
+  }
+};
+
 export const STAGE_ACTIONS = {
   sem5: {
-    title: "Semester 5 (or earlier)",
-    tagline: "Maximum Runway (~12-18 months) - Build Foundations without Rushing",
-    actions: [
-      { step: 1, title: "Set up GitHub & Make First Commit", desc: "Create a GitHub account. Push a clean Python script that solves a real personal problem. Get into the habit of committing daily." },
-      { step: 2, title: "Start Layer 1 Python Foundations", desc: "Block 2 hours this weekend on University of Helsinki MOOC.fi Python. Knock out Chapter 1." },
-      { step: 3, title: "Block Recurring Weekend Slots", desc: "Reserve a 4-hour weekend block. Pacing is 10 hours/week (4-6 hrs on weekdays, 4 hrs on weekend)." },
-      { step: 4, title: "Target Output by Month 2", desc: "A GitHub repo with 3 mini Python scripts (scraper, CLI tool, CSV analyzer) with clean READMEs." }
-    ]
+    ...STAGE_CONFIGS.sem5,
+    actions: STAGE_CONFIGS.sem5.mustDoList.map((item, idx) => ({ step: idx + 1, title: item.split(':')[0] || `Step ${idx+1}`, desc: item }))
   },
   sem7: {
-    title: "Semester 7 (Final-Year, Placements Live)",
-    tagline: "Placement Crunch - Parallel Track & Fast Portfolio Execution",
-    actions: [
-      { step: 1, title: "Honest State Audit", desc: "Are you comfortable with Python? Have you deployed anything? If not, focus immediately on 1 solid project instead of broad theory." },
-      { step: 2, title: "Pick 1 Project from Part 4 Now", desc: "Block 4 weekends for Project 1 (Document Q&A Bot) or Project 2 (Resume Matcher). Deployed project opens the ₹6.5-11 LPA IT Services AI-tier." },
-      { step: 3, title: "Target 8 Tracked Companies", desc: "Focus specifically on TCS Prime, Infosys Power Programmer, Wipro CoE, and HCLTech Elite technical rounds." },
-      { step: 4, title: "Master the 5 Interview Questions", desc: "Rehearse the 90-second project walkthrough and RAG vs Fine-tuning explanations out loud daily." }
-    ]
+    ...STAGE_CONFIGS.sem7,
+    actions: STAGE_CONFIGS.sem7.mustDoList.map((item, idx) => ({ step: idx + 1, title: item.split(':')[0] || `Step ${idx+1}`, desc: item }))
   },
   graduate: {
-    title: "Graduated (Within 12-Month Placement Window)",
-    tagline: "Full-Time Focus - 6-Month Compressed Sprint (16 hrs/week)",
-    actions: [
-      { step: 1, title: "Compress Roadmap to 6 Months", desc: "Commit 16 hours a week. Block specific weeks for each layer in your calendar." },
-      { step: 2, title: "Apply in Parallel from Month 4", desc: "Don't wait for a perfect portfolio. Once Layer 1-3 and 1 solid deployed project are ready, send 30-50 targeted applications." },
-      { step: 3, title: "Recruit Beta Users from Day 1", desc: "Get 20+ college peers, family, or friends to test your live app. External user proof creates instant recruiter credibility." },
-      { step: 4, title: "Target GCCs & AI Startups", desc: "Apply across Series A/B startups, ZS Associates, and Tier-1 IT AI premium tracks." }
-    ]
+    ...STAGE_CONFIGS.graduate,
+    actions: STAGE_CONFIGS.graduate.mustDoList.map((item, idx) => ({ step: idx + 1, title: item.split(':')[0] || `Step ${idx+1}`, desc: item }))
   }
 };
