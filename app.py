@@ -12,25 +12,46 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS to eliminate all Streamlit margins and embed full-screen React UI
+# Custom CSS to eliminate all Streamlit margins and embed full-screen React UI cleanly
 st.markdown("""
 <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    .block-container {
+    /* Hide Streamlit default chrome & toolbar */
+    #MainMenu, footer, header, div[data-testid="stToolbar"], div[data-testid="stDecoration"], div[data-testid="stStatusWidget"] {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* Lock Streamlit container to exact viewport with zero margins */
+    html, body, .stApp, div[data-testid="stAppViewContainer"], section.main, div[data-testid="stAppViewBlockContainer"], .block-container {
+        height: 100vh !important;
+        width: 100vw !important;
+        max-height: 100vh !important;
+        max-width: 100vw !important;
         padding: 0 !important;
-        max-width: 100% !important;
         margin: 0 !important;
+        overflow: hidden !important;
+        background-color: #020617 !important;
     }
-    div[data-testid="stVerticalBlock"] {
+    
+    div[data-testid="stVerticalBlock"], div[data-testid="stElementContainer"] {
+        padding: 0 !important;
+        margin: 0 !important;
         gap: 0 !important;
+        height: 100vh !important;
     }
+
+    /* Fixed full-screen iframe overlay: eliminates double scrollbars & bottom gap */
     iframe {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
         width: 100vw !important;
         height: 100vh !important;
-        min-height: 1000px !important;
         border: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        z-index: 99999 !important;
+        background-color: #020617 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -60,9 +81,24 @@ if os.path.exists(dist_index_path):
     html_content = re.sub(r'<link\s+rel="stylesheet"[^>]*>', '', html_content)
     html_content = re.sub(r'<script\s+type="module"[^>]*></script>', '', html_content)
 
-    # Inject full bundled CSS and JS into standalone HTML
+    # Inject full bundled CSS, smooth scrolling reset, and JS into standalone HTML
     custom_head = f"""
     <style>
+    html, body {{
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        min-height: 100vh;
+        background-color: #020617;
+        overflow-x: hidden;
+        overflow-y: auto;
+        scroll-behavior: smooth;
+    }}
+    #root {{
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }}
     {css_bundle}
     </style>
     """
@@ -76,6 +112,6 @@ if os.path.exists(dist_index_path):
     html_content = html_content.replace('</body>', f'{custom_body}</body>')
 
     # Render complete React SPA
-    components.html(html_content, height=1200, scrolling=True)
+    components.html(html_content, height=1000, scrolling=True)
 else:
     st.error("Production build not found. Please run 'npm run build' first.")
