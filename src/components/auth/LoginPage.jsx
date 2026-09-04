@@ -12,9 +12,11 @@ import {
   Bot, 
   ShieldCheck,
   ArrowRight,
-  Info
+  Info,
+  Settings
 } from 'lucide-react';
 import MicrosoftLoginButton from './MicrosoftLoginButton';
+import MicrosoftSetupModal from './MicrosoftSetupModal';
 import AuthError from './AuthError';
 import TermsPrivacyModal from './TermsPrivacyModal';
 import { useAuth } from '../../auth/AuthContext';
@@ -23,6 +25,7 @@ export default function LoginPage() {
   const { 
     loginWithMicrosoft, 
     loginWithCredentials, 
+    saveCustomMsalConfig,
     isLoading, 
     authError, 
     clearError, 
@@ -38,13 +41,30 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
-  // Terms & Privacy Modal State
+  // Modals
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTab, setModalTab] = useState('terms');
+  const [setupModalOpen, setSetupModalOpen] = useState(false);
 
   const handleOpenModal = (tab) => {
     setModalTab(tab);
     setModalOpen(true);
+  };
+
+  const handleMicrosoftClick = async () => {
+    clearError();
+    const res = await loginWithMicrosoft();
+    if (res && res.needsConfig) {
+      setSetupModalOpen(true);
+    }
+  };
+
+  const handleSaveAzureConfig = async (clientId, tenantId) => {
+    saveCustomMsalConfig(clientId, tenantId);
+    // Immediately trigger Microsoft popup with new Client ID
+    setTimeout(async () => {
+      await loginWithMicrosoft();
+    }, 200);
   };
 
   const handleCredentialsSubmit = async (e) => {
@@ -121,8 +141,8 @@ export default function LoginPage() {
             },
             { 
               icon: ShieldCheck, 
-              title: "Single Sign-On Security", 
-              desc: "Protected via Microsoft Entra ID OAuth 2.0 / OpenID Connect" 
+              title: "Microsoft Entra ID Single Sign-On", 
+              desc: "Protected via OAuth 2.0 PKCE & OpenID Connect authentication" 
             }
           ].map((feat, idx) => {
             const Icon = feat.icon;
@@ -157,9 +177,21 @@ export default function LoginPage() {
           
           {/* Top Card Header */}
           <div className="space-y-2 text-left">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-semibold text-slate-400 mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-              <span>Campus Single Sign-On</span>
+            <div className="flex items-center justify-between">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-semibold text-slate-400">
+                <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                <span>Campus Single Sign-On</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSetupModalOpen(true)}
+                title="Configure Azure Entra ID Client"
+                className="text-[11px] text-slate-400 hover:text-blue-400 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-900 transition-colors"
+              >
+                <Settings className="w-3.5 h-3.5" />
+                <span>Azure Config</span>
+              </button>
             </div>
             
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -177,22 +209,31 @@ export default function LoginPage() {
             <AuthError 
               message={authError} 
               onDismiss={clearError}
-              onRetry={loginWithMicrosoft}
+              onRetry={handleMicrosoftClick}
             />
           )}
 
           {/* PRIMARY AUTH METHOD: Official Microsoft Login Button */}
           <div className="space-y-2">
             <MicrosoftLoginButton 
-              onClick={loginWithMicrosoft}
+              onClick={handleMicrosoftClick}
               isLoading={isLoading}
               text="Continue with Microsoft"
             />
 
             {!isMsalConfigured && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-950/30 border border-blue-500/20 text-[11px] text-blue-300">
-                <Info className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                <span>Development SSO mode active. One-click instant login enabled.</span>
+              <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-blue-950/30 border border-blue-500/20 text-[11px] text-blue-300">
+                <div className="flex items-center gap-2">
+                  <Info className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <span>Real Microsoft OAuth ready. Connect Azure Client ID.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSetupModalOpen(true)}
+                  className="font-bold underline text-blue-400 hover:text-blue-300 shrink-0"
+                >
+                  Configure
+                </button>
               </div>
             )}
           </div>
@@ -391,6 +432,13 @@ export default function LoginPage() {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         initialTab={modalTab}
+      />
+
+      {/* Microsoft Entra ID Setup Modal */}
+      <MicrosoftSetupModal
+        isOpen={setupModalOpen}
+        onClose={() => setSetupModalOpen(false)}
+        onSaveConfig={handleSaveAzureConfig}
       />
     </div>
   );

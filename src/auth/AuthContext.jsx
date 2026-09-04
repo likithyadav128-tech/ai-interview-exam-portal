@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { msalInstance, loginRequest, isMsalConfigured } from './authConfig';
+import { 
+  getMsalInstance, 
+  resetMsalInstance, 
+  loginRequest, 
+  isClientConfigured,
+  getStoredClientId 
+} from './authConfig';
 
 const AuthContext = createContext(null);
 
@@ -15,7 +21,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
-  const [isMsalReady, setIsMsalReady] = useState(false);
+  const [isMsalConfigured, setIsMsalConfigured] = useState(isClientConfigured());
 
   // Initialize MSAL and check active session on mount
   useEffect(() => {
@@ -23,16 +29,15 @@ export const AuthProvider = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
-        // Initialize MSAL instance if supported
-        if (typeof msalInstance.initialize === 'function') {
-          await msalInstance.initialize();
+        const msal = getMsalInstance();
+        if (typeof msal.initialize === 'function') {
+          await msal.initialize();
         }
 
         if (!isMounted) return;
-        setIsMsalReady(true);
 
         // Handle redirect response if returning from Microsoft login redirect
-        const response = await msalInstance.handleRedirectPromise().catch((err) => {
+        const response = await msal.handleRedirectPromise().catch((err) => {
           console.error("MSAL Redirect Error:", err);
           return null;
         });
@@ -56,23 +61,25 @@ export const AuthProvider = ({ children }) => {
         }
 
         // Check if there is an active MSAL account
-        const accounts = msalInstance.getAllAccounts();
-        if (accounts.length > 0 && isMsalConfigured) {
-          const account = accounts[0];
-          const authUser = {
-            id: account.homeAccountId || account.localAccountId,
-            name: account.name || account.username.split('@')[0],
-            email: account.username || '',
-            role: 'student',
-            stage: 'sem7',
-            targetCompany: 'TCS Prime (₹7-11.5 LPA)',
-            authProvider: 'microsoft',
-            examHistory: []
-          };
-          setUser(authUser);
-          localStorage.setItem('ai_portal_current_user', JSON.stringify(authUser));
-          setIsLoading(false);
-          return;
+        if (isClientConfigured()) {
+          const accounts = msal.getAllAccounts();
+          if (accounts.length > 0) {
+            const account = accounts[0];
+            const authUser = {
+              id: account.homeAccountId || account.localAccountId,
+              name: account.name || account.username.split('@')[0],
+              email: account.username || '',
+              role: 'student',
+              stage: 'sem7',
+              targetCompany: 'TCS Prime (₹7-11.5 LPA)',
+              authProvider: 'microsoft',
+              examHistory: []
+            };
+            setUser(authUser);
+            localStorage.setItem('ai_portal_current_user', JSON.stringify(authUser));
+            setIsLoading(false);
+            return;
+          }
         }
 
         // Check local persisted session
@@ -105,34 +112,31 @@ export const AuthProvider = ({ children }) => {
     setAuthError(null);
   }, []);
 
+  // Save custom client config
+  const saveCustomMsalConfig = useCallback((clientId, tenantId) => {
+    resetMsalInstance(clientId, tenantId);
+    setIsMsalConfigured(Boolean(clientId && clientId.length > 8));
+  }, []);
+
   // Microsoft OAuth Login Handler
   const loginWithMicrosoft = useCallback(async () => {
-    setIsLoading(true);
     setAuthError(null);
 
-    if (!isMsalConfigured) {
-      // If client ID is not configured yet, provide helpful guidance or seamless demo login
-      setTimeout(() => {
-        const demoUser = {
-          id: 'ms-demo-user-1',
-          name: 'Likith Yadav (Microsoft Student)',
-          email: 'likith.student@university.edu.in',
-          role: 'student',
-          stage: 'sem7',
-          targetCompany: 'TCS Prime (₹7-11.5 LPA)',
-          authProvider: 'microsoft',
-          examHistory: []
-        };
-        setUser(demoUser);
-        localStorage.setItem('ai_portal_current_user', JSON.stringify(demoUser));
-        setIsLoading(false);
-      }, 700);
-      return;
+    // If client ID is not configured, inform caller to open setup modal
+    if (!isClientConfigured()) {
+      return { needsConfig: true };
     }
 
+    setIsLoading(true);
+
     try {
-      // Use popup flow for seamless in-page login or redirect if popup is blocked
-      const response = await msalInstance.loginPopup(loginRequest);
+      const msal = getMsalInstance();
+      if (typeof msal.initialize === 'function') {
+        await msal.initialize();
+      }
+
+      // Execute real Microsoft OAuth 2.0 PKCE Popup Flow
+      const response = await msal.loginPopup(loginRequest);
       if (response && response.account) {
         const account = response.account;
         const authUser = {
@@ -147,25 +151,31 @@ export const AuthProvider = ({ children }) => {
         };
         setUser(authUser);
         localStorage.setItem('ai_portal_current_user', JSON.stringify(authUser));
+        setIsLoading(false);
+        return { success: true };
       }
     } catch (err) {
       console.error("Microsoft Login Failed:", err);
       if (err.errorCode === 'user_cancelled') {
-        setAuthError("Sign-in was cancelled. Please try again.");
+        setAuthError("Sign-in was cancelled by user.");
       } else if (err.errorCode === 'popup_window_error') {
-        // Fallback to redirect if popup is blocked by browser
         try {
-          await msalInstance.loginRedirect(loginRequest);
-          return;
+          const msal = getMsalInstance();
+          await msal.loginRedirect(loginRequest);
+          return { redirecting: true };
         } catch (redirectErr) {
-          setAuthError("Unable to open sign-in window. Check popup permissions and try again.");
+          setAuthError("Unable to open Microsoft login window. Check popup permissions.");
         }
+      } else if (err.errorMessage && err.errorMessage.includes('AADSTS')) {
+        setAuthError(`Microsoft Authentication Error: ${err.errorMessage.split(':')[0]}`);
       } else {
-        setAuthError("Unable to sign in with Microsoft. Please verify your internet connection and try again.");
+        setAuthError("Unable to complete Microsoft Sign-In. Please check your credentials and network connection.");
       }
     } finally {
       setIsLoading(false);
     }
+
+    return { success: false };
   }, []);
 
   // Standard Email / University Credentials Login
@@ -173,8 +183,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoading(true);
     setAuthError(null);
 
-    // Simulated network delay for realistic security feedback
-    await new Promise((resolve) => setTimeout(resolve, 600));
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     if (!email || !password) {
       setAuthError("Please provide both email and password.");
@@ -221,7 +230,6 @@ export const AuthProvider = ({ children }) => {
         if (found) {
           authenticatedUser = found;
         } else {
-          // Auto-provision if valid login attempt
           authenticatedUser = {
             id: `usr_${Date.now()}`,
             name: name || email.split('@')[0],
@@ -253,14 +261,14 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback(async () => {
     setIsLoading(true);
     try {
-      if (user?.authProvider === 'microsoft' && isMsalConfigured) {
-        const accounts = msalInstance.getAllAccounts();
+      if (user?.authProvider === 'microsoft' && isClientConfigured()) {
+        const msal = getMsalInstance();
+        const accounts = msal.getAllAccounts();
         if (accounts.length > 0) {
-          await msalInstance.logoutPopup({
+          await msal.logoutPopup({
             account: accounts[0],
             postLogoutRedirectUri: window.location.origin
           }).catch(() => {
-            // If popup logout fails, clear local cache
             sessionStorage.clear();
           });
         }
@@ -275,14 +283,13 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
-  // Update user profile data (e.g. exam scores or stage change)
+  // Update user profile data
   const updateUserProfile = useCallback((updates) => {
     setUser(prev => {
       if (!prev) return null;
       const updated = { ...prev, ...updates };
       localStorage.setItem('ai_portal_current_user', JSON.stringify(updated));
 
-      // Sync with all users list
       try {
         const usersStr = localStorage.getItem('ai_portal_users');
         if (usersStr) {
@@ -307,9 +314,9 @@ export const AuthProvider = ({ children }) => {
     isLoading,
     authError,
     isMsalConfigured,
-    isMsalReady,
     loginWithMicrosoft,
     loginWithCredentials,
+    saveCustomMsalConfig,
     logout,
     updateUserProfile,
     clearError
