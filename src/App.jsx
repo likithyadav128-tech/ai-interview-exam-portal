@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import AuthLanding from './components/AuthLanding';
+import LoginPage from './components/auth/LoginPage';
+import AuthLoading from './components/auth/AuthLoading';
 import StageExperienceHub from './components/StageExperienceHub';
 import ExamEngine from './components/ExamEngine';
 import CompanyTracks from './components/CompanyTracks';
@@ -9,64 +10,42 @@ import CodingBench from './components/CodingBench';
 import RoadmapView from './components/RoadmapView';
 import ProjectPortfolioHub from './components/ProjectPortfolioHub';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
+import { AuthProvider, useAuth } from './auth/AuthContext';
 
-export default function App() {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('stage'); // default to tailored stage hub
-  const [userStage, setUserStage] = useState('sem7'); // 'sem5', 'sem7', 'graduate'
+function AuthenticatedApp() {
+  const { user, isAuthenticated, isLoading, logout, updateUserProfile } = useAuth();
+  const [activeTab, setActiveTab] = useState('stage');
+  const [userStage, setUserStage] = useState('sem7');
   const [activeExamId, setActiveExamId] = useState('layer-3');
   const [examHistory, setExamHistory] = useState([]);
 
-  // Check persisted user session on mount
+  // Sync user state when user object changes
   useEffect(() => {
-    try {
-      const savedUserStr = localStorage.getItem('ai_portal_current_user');
-      if (savedUserStr) {
-        const parsedUser = JSON.parse(savedUserStr);
-        setCurrentUser(parsedUser);
-        if (parsedUser.stage) setUserStage(parsedUser.stage);
-        if (parsedUser.examHistory) setExamHistory(parsedUser.examHistory);
-      }
-    } catch (e) {
-      console.error("Failed to load user session", e);
+    if (user) {
+      if (user.stage) setUserStage(user.stage);
+      if (user.examHistory) setExamHistory(user.examHistory);
     }
-  }, []);
+  }, [user]);
 
-  const handleLoginSuccess = (user) => {
-    setCurrentUser(user);
-    if (user.stage) setUserStage(user.stage);
-    if (user.examHistory) setExamHistory(user.examHistory);
-    setActiveTab('stage');
-  };
+  // Loading Screen
+  if (isLoading) {
+    return <AuthLoading message="Checking your Microsoft session..." />;
+  }
 
-  const handleLogout = () => {
-    localStorage.removeItem('ai_portal_current_user');
-    setCurrentUser(null);
+  // Unauthenticated -> Professional Two-Section Microsoft Login Page
+  if (!isAuthenticated || !user) {
+    return <LoginPage />;
+  }
+
+  const handleStageChange = (newStage) => {
+    setUserStage(newStage);
+    updateUserProfile({ stage: newStage });
   };
 
   const handleExamCompleted = (result) => {
     const updatedHistory = [result, ...examHistory];
     setExamHistory(updatedHistory);
-
-    // Save to user profile in localStorage
-    if (currentUser) {
-      const updatedUser = { ...currentUser, examHistory: updatedHistory };
-      setCurrentUser(updatedUser);
-      localStorage.setItem('ai_portal_current_user', JSON.stringify(updatedUser));
-
-      // Update all users list
-      try {
-        const usersStr = localStorage.getItem('ai_portal_users');
-        let users = usersStr ? JSON.parse(usersStr) : [];
-        const uIdx = users.findIndex(u => u.email === currentUser.email);
-        if (uIdx !== -1) {
-          users[uIdx] = updatedUser;
-          localStorage.setItem('ai_portal_users', JSON.stringify(users));
-        }
-      } catch (err) {
-        console.error("Error saving exam history", err);
-      }
-    }
+    updateUserProfile({ examHistory: updatedHistory });
   };
 
   const handleLaunchExam = (examId) => {
@@ -79,30 +58,25 @@ export default function App() {
     ? Math.round(examHistory.reduce((acc, c) => acc + c.scorePercentage, 0) / examHistory.length)
     : 75;
 
-  // If not logged in, render the Animated Auth Flow Landing
-  if (!currentUser) {
-    return <AuthLanding onLoginSuccess={handleLoginSuccess} />;
-  }
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-orange-500 selection:text-white">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between selection:bg-blue-600 selection:text-white">
       <div>
         <Navbar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           userStage={userStage}
-          setUserStage={setUserStage}
+          setUserStage={handleStageChange}
           globalScore={globalScore}
           totalTestsAttempted={examHistory.length}
-          currentUser={currentUser}
-          onLogout={handleLogout}
+          currentUser={user}
+          onLogout={logout}
         />
 
         <main className="transition-all duration-300">
           {activeTab === 'stage' && (
             <StageExperienceHub
               userStage={userStage}
-              setUserStage={setUserStage}
+              setUserStage={handleStageChange}
               onLaunchExam={handleLaunchExam}
               onNavigateTab={setActiveTab}
             />
@@ -133,7 +107,7 @@ export default function App() {
           {activeTab === 'roadmap' && (
             <RoadmapView
               userStage={userStage}
-              setUserStage={setUserStage}
+              setUserStage={handleStageChange}
             />
           )}
 
@@ -155,21 +129,29 @@ export default function App() {
       <footer className="border-t border-slate-800/80 bg-slate-950 py-8 px-4 sm:px-6 lg:px-8 mt-16 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <span className="font-bold text-slate-300">The 2026 AI Career Roadmap</span> — For Indian Engineering Students
+            <span className="font-bold text-slate-300">The 2026 AI Career Roadmap</span> — University Placement Edition
             <div className="text-[11px] text-slate-500 mt-0.5">
-              Logged in as <span className="text-orange-400 font-bold">{currentUser.name}</span> ({currentUser.email}) • Active Track: <span className="text-slate-300 font-bold">{userStage.toUpperCase()}</span>
+              Signed in as <span className="text-blue-400 font-bold">{user.name}</span> ({user.email}) • Mode: <span className="text-slate-300 font-bold">{user.authProvider === 'microsoft' ? 'Microsoft SSO' : 'University Auth'}</span>
             </div>
           </div>
           <div className="flex items-center gap-6">
-            <button onClick={() => setActiveTab('stage')} className="hover:text-orange-400 transition-colors">Stage Hub</button>
-            <button onClick={() => setActiveTab('roadmap')} className="hover:text-orange-400 transition-colors">Curriculum</button>
-            <button onClick={() => setActiveTab('projects')} className="hover:text-orange-400 transition-colors">5 Projects</button>
-            <button onClick={() => setActiveTab('companies')} className="hover:text-orange-400 transition-colors">14 Companies</button>
-            <button onClick={() => setActiveTab('analytics')} className="hover:text-orange-400 transition-colors">CTC Matrix</button>
-            <button onClick={handleLogout} className="text-red-400 hover:text-red-300 transition-colors font-medium">Sign Out</button>
+            <button onClick={() => setActiveTab('stage')} className="hover:text-blue-400 transition-colors">Stage Hub</button>
+            <button onClick={() => setActiveTab('roadmap')} className="hover:text-blue-400 transition-colors">Curriculum</button>
+            <button onClick={() => setActiveTab('projects')} className="hover:text-blue-400 transition-colors">5 Projects</button>
+            <button onClick={() => setActiveTab('companies')} className="hover:text-blue-400 transition-colors">14 Companies</button>
+            <button onClick={() => setActiveTab('analytics')} className="hover:text-blue-400 transition-colors">CTC Matrix</button>
+            <button onClick={logout} className="text-red-400 hover:text-red-300 transition-colors font-medium">Sign Out</button>
           </div>
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AuthenticatedApp />
+    </AuthProvider>
   );
 }
